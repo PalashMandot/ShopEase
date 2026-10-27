@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Categories | ShopEase Admin{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 950px;">
+  <!-- Header -->
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <div style="font-size: 0.85rem; color: var(--gray-500); margin-bottom: 0.25rem;">
+        <a href="{{ url_for('admin_dashboard') }}" style="color: var(--gray-500);">Admin</a> / <span>Categories</span>
+      </div>
+      <h1 style="font-size: 1.85rem; font-weight: 800; color: var(--gray-900);">Product Categories</h1>
+      <p style="color: var(--gray-500); font-size: 0.95rem;">Organize catalog items into intuitive browsing categories.</p>
+    </div>
+
+    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
+      <i class="bi bi-arrow-left"></i> Dashboard
+    </a>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1.6fr; gap: 2rem; align-items: start;">
+    <!-- Add Category Form Card -->
+    <div style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-xl); padding: 1.75rem; box-shadow: var(--shadow-sm);">
+      <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--gray-900); margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+        <i class="bi bi-plus-circle text-primary"></i> Add New Category
+      </h3>
+
+      <form action="{{ url_for('admin_categories') }}" method="POST" id="add-category-form">
+        <div class="form-group">
+          <label class="form-label" for="cat-name">Category Name *</label>
+          <input type="text" id="cat-name" name="name" class="form-control"
+                 placeholder="e.g. Gaming & Consoles" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="cat-icon">Bootstrap Icon Class</label>
+          <input type="text" id="cat-icon" name="icon" class="form-control"
+                 placeholder="e.g. bi-controller" value="bi-tag">
+          <small style="color: var(--gray-500); font-size: 0.78rem;">Use any icon from Bootstrap Icons (e.g. bi-laptop, bi-gift, bi-camera).</small>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="cat-desc">Description</label>
+          <textarea id="cat-desc" name="description" class="form-control" rows="2"
+                    placeholder="Short summary of items in this classification..."></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block" id="create-category-btn">
+          Create Category
+        </button>
+      </form>
+    </div>
+
+    <!-- Existing Categories Table Card -->
+    <div class="table-card">
+      <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--gray-200); background: var(--gray-50); display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--gray-900);">Existing Categories</h3>
+        <span style="font-size: 0.85rem; color: var(--gray-500); font-weight: 600;">{{ categories|length }} Categories</span>
+      </div>
+
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Icon</th>
+              <th>Name</th>
+              <th>Products</th>
+              <th style="text-align: right;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for cat in categories %}
+              <tr id="cat-row-{{ cat.id }}">
+                <td>
+                  <div style="width: 36px; height: 36px; background: var(--primary-light); color: var(--primary); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+                    <i class="bi {{ cat.icon or 'bi-tag' }}"></i>
+                  </div>
+                </td>
+                <td>
+                  <div style="font-weight: 700; color: var(--gray-900);">{{ cat.name }}</div>
+                  <div style="font-size: 0.78rem; color: var(--gray-500); max-width: 250px;">{{ cat.description }}</div>
+                </td>
+                <td>
+                  <span class="badge-tag" style="background: var(--gray-100); color: var(--gray-800); position: static;">
+                    {{ cat.product_count }} items
+                  </span>
+                </td>
+                <td style="text-align: right;">
+                  {% if cat.product_count == 0 %}
+                    <form action="{{ url_for('admin_delete_category', category_id=cat.id) }}" method="POST"
+                          onsubmit="return confirm('Delete category {{ cat.name }}?');" style="display: inline;">
+                      <button type="submit" class="btn btn-secondary btn-sm" style="color: var(--danger);" title="Delete Empty Category">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </form>
+                  {% else %}
+                    <span style="font-size: 0.75rem; color: var(--gray-400);" title="Cannot delete category while products exist in it">In Use</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

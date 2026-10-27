@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}ShopEase | Modern Online Shopping Portal{% endblock %}</title>
+  <meta name="description" content="ShopEase - Discover top gadgets, fashion, home essentials and more with secure ordering and fast delivery.">
+
+  <!-- Google Font: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Bootstrap Icons CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+  <!-- Main Custom Stylesheet -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="navbar">
+    <div class="nav-container container">
+      <!-- Brand Logo -->
+      <a href="{{ url_for('index') }}" class="brand-logo" id="nav-brand-logo">
+        <div class="logo-icon"><i class="bi bi-bag-heart-fill"></i></div>
+        <span>Shop<span>Ease</span></span>
+      </a>
+
+      <!-- Global Product Search -->
+      <div class="nav-search">
+        <form action="{{ url_for('products') }}" method="GET" class="search-form" id="global-search-form">
+          <i class="bi bi-search search-icon"></i>
+          <input type="text" name="q" class="search-input" id="search-input-field"
+                 placeholder="Search products, brands, and categories..."
+                 value="{{ request.args.get('q', '') }}">
+        </form>
+      </div>
+
+      <!-- Action Links & User Dropdown -->
+      <div class="nav-actions">
+        <a href="{{ url_for('products') }}" class="nav-link" id="nav-catalog-link">
+          <i class="bi bi-grid"></i>
+          <span>Catalog</span>
+        </a>
+
+        <!-- Cart Button with Dynamic Badge -->
+        <a href="{{ url_for('cart') }}" class="cart-badge-btn" id="nav-cart-btn">
+          <i class="bi bi-cart3"></i>
+          <span>Cart</span>
+          <span class="badge-count" style="display: {{ 'inline-block' if cart_count > 0 else 'none' }};">{{ cart_count }}</span>
+        </a>
+
+        {% if session.get('user_id') %}
+          <!-- Logged In User Dropdown -->
+          <div class="user-menu" id="nav-user-menu">
+            <button class="user-btn" id="user-menu-button">
+              <div class="user-avatar">{{ session.get('user_name', 'U')[0] | upper }}</div>
+              <span>{{ session.get('user_name', 'Account').split()[0] }}</span>
+              <i class="bi bi-chevron-down" style="font-size: 0.75rem;"></i>
+            </button>
+            <div class="dropdown-menu">
+              {% if session.get('is_admin') %}
+                <a href="{{ url_for('admin_dashboard') }}" class="dropdown-item" id="nav-admin-link">
+                  <i class="bi bi-speedometer2 text-primary"></i> Admin Dashboard
+                </a>
+                <div class="dropdown-divider"></div>
+              {% endif %}
+              <a href="{{ url_for('orders') }}" class="dropdown-item" id="nav-orders-link">
+                <i class="bi bi-box-seam"></i> My Orders
+              </a>
+              <a href="{{ url_for('profile') }}" class="dropdown-item" id="nav-profile-link">
+                <i class="bi bi-person"></i> My Profile
+              </a>
+              <div class="dropdown-divider"></div>
+              <a href="{{ url_for('logout') }}" class="dropdown-item text-danger" id="nav-logout-link">
+                <i class="bi bi-box-arrow-right"></i> Logout
+              </a>
+            </div>
+          </div>
+        {% else %}
+          <!-- Guest: Sign In / Register -->
+          <a href="{{ url_for('login') }}" class="btn btn-secondary btn-sm" id="nav-login-btn">
+            <i class="bi bi-box-arrow-in-right"></i> Sign In
+          </a>
+          <a href="{{ url_for('register') }}" class="btn btn-primary btn-sm" id="nav-register-btn">
+            Register
+          </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Category Pill Quick Bar -->
+    <div class="category-bar">
+      <div class="container category-bar-inner">
+        <a href="{{ url_for('products') }}" class="cat-pill {{ 'active' if not request.args.get('category') and request.endpoint == 'products' else '' }}">
+          <i class="bi bi-stars"></i> All Categories
+        </a>
+        {% for cat in all_categories %}
+          <a href="{{ url_for('products', category=cat.id) }}"
+             class="cat-pill {{ 'active' if request.args.get('category') == cat.id|string else '' }}">
+            <i class="bi {{ cat.icon or 'bi-tag' }}"></i> {{ cat.name }}
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+  </header>
+
+  <!-- Flash Notification Messages -->
+  <div class="container flash-container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}" role="alert">
+            <span>{{ message }}</span>
+            <button type="button" class="alert-close" aria-label="Close">&times;</button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% if error_title %}
+      <div class="alert alert-danger" style="margin-top: 2rem; padding: 2rem; text-align: center;">
+        <h2>{{ error_title }}</h2>
+        <p style="margin-top: 0.5rem;">{{ error_msg }}</p>
+        <a href="{{ url_for('index') }}" class="btn btn-primary" style="margin-top: 1rem;">Back to Home</a>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Main Content Block -->
+  <main class="main-content">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="brand-logo" style="margin-bottom: 0.75rem;">
+            <div class="logo-icon"><i class="bi bi-bag-heart-fill"></i></div>
+            <span style="color: white;">Shop<span style="color: var(--secondary);">Ease</span></span>
+          </div>
+          <p>Your one-stop destination for premier lifestyle, tech, and everyday essentials. Designed with speed, security, and simplicity.</p>
+          <div style="margin-top: 1rem; color: #64748b; font-size: 0.85rem;">
+            <i class="bi bi-shield-check text-success"></i> Secure Cash on Delivery &bull; Fast Delivery
+          </div>
+        </div>
+
+        <div class="footer-col">
+          <h4>Quick Links</h4>
+          <ul class="footer-links">
+            <li><a href="{{ url_for('index') }}">Home</a></li>
+            <li><a href="{{ url_for('products') }}">All Products</a></li>
+            <li><a href="{{ url_for('cart') }}">Shopping Cart</a></li>
+            <li><a href="{{ url_for('orders') }}">Order Tracking</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Customer Care</h4>
+          <ul class="footer-links">
+            <li><a href="{{ url_for('profile') }}">My Account</a></li>
+            <li><a href="{{ url_for('products') }}">Special Offers</a></li>
+            <li><a href="#">Return Policy</a></li>
+            <li><a href="#">Help & Support</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Academic Project</h4>
+          <p style="font-size: 0.85rem; line-height: 1.5; color: #94a3b8;">
+            <strong>College TA-2 Submission</strong><br>
+            Department of Computer Science & Engineering<br>
+            Tech: Python Flask, SQLite, HTML5, Vanilla CSS & JS
+          </p>
+          <div style="margin-top: 0.85rem;">
+            <span style="background: rgba(255,255,255,0.08); padding: 0.3rem 0.6rem; border-radius: 4px; font-size: 0.78rem; color: #cbd5e1;">
+              Admin Portal: <a href="{{ url_for('login') }}" style="color: var(--secondary);">admin@shopease.com</a>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>&copy; {{ current_year }} ShopEase E-Commerce Portal. All rights reserved.</div>
+        <div>Built for CSE 3rd Year TA-2 Capstone Evaluation.</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Main JavaScript File -->
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

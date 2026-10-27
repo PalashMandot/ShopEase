@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Orders | ShopEase Admin{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Header -->
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <div style="font-size: 0.85rem; color: var(--gray-500); margin-bottom: 0.25rem;">
+        <a href="{{ url_for('admin_dashboard') }}" style="color: var(--gray-500);">Admin</a> / <span>Orders</span>
+      </div>
+      <h1 style="font-size: 1.85rem; font-weight: 800; color: var(--gray-900);">Customer Orders Management</h1>
+      <p style="color: var(--gray-500); font-size: 0.95rem;">Review order details, track delivery timelines, and update fulfillment statuses.</p>
+    </div>
+
+    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
+      <i class="bi bi-arrow-left"></i> Dashboard
+    </a>
+  </div>
+
+  <!-- Status Filter Pills Bar -->
+  <div style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 0.75rem 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.65rem; overflow-x: auto; white-space: nowrap;">
+    <span style="font-size: 0.85rem; font-weight: 700; color: var(--gray-500); margin-right: 0.5rem;">Filter by:</span>
+    {% for status, count in status_counts.items() %}
+      <a href="{{ url_for('admin_orders', status=status) }}"
+         class="cat-pill {{ 'active' if current_status == status else '' }}"
+         style="font-size: 0.85rem; padding: 0.35rem 0.85rem;">
+        {{ status }} ({{ count }})
+      </a>
+    {% endfor %}
+  </div>
+
+  <!-- Orders Data Table Card -->
+  <div class="table-card">
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Order #</th>
+            <th>Customer & Contact</th>
+            <th>Date Placed</th>
+            <th>Items</th>
+            <th>Total Amount</th>
+            <th>Current Status</th>
+            <th>Update Status</th>
+            <th style="text-align: right;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for o in orders %}
+            <tr id="admin-order-row-{{ o.order_number }}">
+              <td>
+                <a href="{{ url_for('order_detail', order_number=o.order_number) }}" style="font-weight: 800; color: var(--primary);">
+                  {{ o.order_number }}
+                </a>
+              </td>
+              <td>
+                <div style="font-weight: 700; color: var(--gray-900);">{{ o.customer_name }}</div>
+                <div style="font-size: 0.78rem; color: var(--gray-500);">{{ o.customer_phone }} &bull; {{ o.city }}</div>
+              </td>
+              <td style="color: var(--gray-600); font-size: 0.85rem;">
+                {{ o.created_at }}
+              </td>
+              <td>
+                <span class="badge-tag" style="background: var(--gray-100); color: var(--gray-800); position: static;">
+                  {{ o.item_count }} item{{ 's' if o.item_count != 1 else '' }}
+                </span>
+              </td>
+              <td style="font-weight: 800; color: var(--gray-900);">
+                ₹{{ "%.2f"|format(o.total_amount) }}
+              </td>
+              <td>
+                <span class="status-badge status-{{ o.status|lower }}">
+                  <i class="bi bi-circle-fill" style="font-size: 0.45rem;"></i> {{ o.status }}
+                </span>
+              </td>
+              <td>
+                <form action="{{ url_for('admin_update_order_status', order_id=o.id) }}" method="POST" style="display: flex; gap: 0.35rem;">
+                  <select name="status" class="sort-select" style="padding: 0.3rem 0.5rem; font-size: 0.82rem;">
+                    <option value="Pending" {{ 'selected' if o.status == 'Pending' else '' }}>Pending</option>
+                    <option value="Processing" {{ 'selected' if o.status == 'Processing' else '' }}>Processing</option>
+                    <option value="Shipped" {{ 'selected' if o.status == 'Shipped' else '' }}>Shipped</option>
+                    <option value="Delivered" {{ 'selected' if o.status == 'Delivered' else '' }}>Delivered</option>
+                    <option value="Cancelled" {{ 'selected' if o.status == 'Cancelled' else '' }}>Cancelled</option>
+                  </select>
+                  <button type="submit" class="btn btn-secondary btn-sm" style="padding: 0.3rem 0.6rem;" title="Save Status">
+                    <i class="bi bi-check-lg"></i>
+                  </button>
+                </form>
+              </td>
+              <td style="text-align: right;">
+                <a href="{{ url_for('order_detail', order_number=o.order_number) }}" class="btn btn-secondary btn-sm">
+                  <i class="bi bi-eye"></i> View
+                </a>
+              </td>
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="8" style="text-align: center; color: var(--gray-500); padding: 3rem;">
+                No orders found under status "<strong>{{ current_status }}</strong>".
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

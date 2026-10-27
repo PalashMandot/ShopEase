@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}Create an Account | ShopEase{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="auth-wrapper" style="max-width: 520px;">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="brand-logo" style="justify-content: center; margin-bottom: 0.75rem;">
+          <div class="logo-icon"><i class="bi bi-bag-heart-fill"></i></div>
+          <span>Shop<span>Ease</span></span>
+        </div>
+        <h2>Create an Account</h2>
+        <p>Join ShopEase for fast checkout, order tracking, and exclusive deals.</p>
+      </div>
+
+      <form action="{{ url_for('register') }}" method="POST" id="register-form">
+        <div class="form-group">
+          <label class="form-label" for="reg-name">Full Name *</label>
+          <input type="text" id="reg-name" name="name" class="form-control"
+                 placeholder="e.g. Priya Sundaram" required autofocus>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="reg-email">Email Address *</label>
+          <input type="email" id="reg-email" name="email" class="form-control"
+                 placeholder="priya@example.com" required>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label" for="reg-password">Password *</label>
+            <input type="password" id="reg-password" name="password" class="form-control"
+                   placeholder="Min 6 characters" minlength="6" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="reg-confirm-password">Confirm Password *</label>
+            <input type="password" id="reg-confirm-password" name="confirm_password" class="form-control"
+                   placeholder="Repeat password" minlength="6" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="reg-phone">Phone Number</label>
+          <input type="tel" id="reg-phone" name="phone" class="form-control"
+                 placeholder="+91 9876543210">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="reg-address">Delivery Address (Optional)</label>
+          <textarea id="reg-address" name="address" class="form-control" rows="2"
+                    placeholder="House/Apartment, Street name, City"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top: 1.5rem;" id="register-submit-btn">
+          Create Account
+        </button>
+      </form>
+
+      <div style="text-align: center; margin-top: 1.5rem; font-size: 0.9rem; color: var(--gray-600);">
+        Already have an account? 
+        <a href="{{ url_for('login') }}" style="font-weight: 700;" id="auth-switch-login">Sign in</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

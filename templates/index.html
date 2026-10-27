@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+
+{% block title %}ShopEase | Welcome to Smart & Easy Shopping{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Hero Section -->
+  <section class="hero-banner">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <i class="bi bi-fire text-warning"></i> Season Special &bull; Flat 20% Off
+      </div>
+      <h1 class="hero-title">Experience Seamless Online Shopping with ShopEase</h1>
+      <p class="hero-subtitle">
+        Curated electronics, trendsetting apparel, home essentials, and fitness gear. Enjoy cash on delivery and doorstep service today.
+      </p>
+      <div class="hero-actions">
+        <a href="{{ url_for('products') }}" class="btn btn-primary btn-lg" id="hero-shop-now-btn">
+          <i class="bi bi-bag-fill"></i> Shop Now
+        </a>
+        <a href="{{ url_for('products', category=1) }}" class="btn btn-secondary btn-lg" style="background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.25);">
+          <i class="bi bi-laptop"></i> Explore Electronics
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Perks / Trust Factors -->
+  <section class="perks-grid">
+    <div class="perk-card">
+      <div class="perk-icon"><i class="bi bi-truck"></i></div>
+      <div class="perk-info">
+        <h4>Free Fast Delivery</h4>
+        <p>On all orders above ₹999 across India</p>
+      </div>
+    </div>
+    <div class="perk-card">
+      <div class="perk-icon"><i class="bi bi-cash-stack"></i></div>
+      <div class="perk-info">
+        <h4>Cash on Delivery</h4>
+        <p>Pay comfortably right at your doorstep</p>
+      </div>
+    </div>
+    <div class="perk-card">
+      <div class="perk-icon"><i class="bi bi-shield-check"></i></div>
+      <div class="perk-info">
+        <h4>100% Genuine Products</h4>
+        <p>Verified inventory and trusted brands</p>
+      </div>
+    </div>
+    <div class="perk-card">
+      <div class="perk-icon"><i class="bi bi-arrow-repeat"></i></div>
+      <div class="perk-info">
+        <h4>Easy 7-Day Returns</h4>
+        <p>Hassle-free replacement policy</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Categories -->
+  <section style="margin-bottom: 3rem;">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Popular Categories</h2>
+        <p class="section-subtitle">Browse through our handpicked top collections</p>
+      </div>
+      <a href="{{ url_for('products') }}" class="section-link">View All <i class="bi bi-arrow-right"></i></a>
+    </div>
+
+    <div class="category-grid">
+      {% for cat in categories_with_count %}
+        <a href="{{ url_for('products', category=cat.id) }}" class="category-card" id="cat-card-{{ cat.id }}">
+          <div class="cat-circle">
+            <i class="bi {{ cat.icon or 'bi-tag' }}"></i>
+          </div>
+          <span class="cat-title">{{ cat.name }}</span>
+          <span class="cat-count">{{ cat.product_count }} items</span>
+        </a>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Featured Products Grid -->
+  <section style="margin-bottom: 3.5rem;">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Featured Products</h2>
+        <p class="section-subtitle">Top rated by customers and in high demand</p>
+      </div>
+      <a href="{{ url_for('products') }}" class="section-link">See All Products <i class="bi bi-arrow-right"></i></a>
+    </div>
+
+    <div class="product-grid">
+      {% for product in featured_products %}
+        <div class="product-card" id="product-card-{{ product.id }}">
+          <div class="product-thumb">
+            <img src="{{ product.image_url }}" alt="{{ product.name }}" loading="lazy"
+                 onerror="this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=80';">
+            <span class="badge-tag badge-featured">Featured</span>
+          </div>
+
+          <div class="product-body">
+            <div class="product-category">{{ product.category_name }}</div>
+            <a href="{{ url_for('product_detail', product_id=product.id) }}" class="product-title">
+              {{ product.name }}
+            </a>
+            <p class="product-desc">{{ product.description }}</p>
+
+            <div class="product-footer">
+              <div class="product-price">₹{{ "%.2f"|format(product.price) }}</div>
+              
+              <form action="{{ url_for('add_to_cart', product_id=product.id) }}" method="POST" class="ajax-add-cart">
+                <input type="hidden" name="quantity" value="1">
+                <button type="submit" class="btn-add-cart" title="Add to Cart" id="add-btn-{{ product.id }}">
+                  <i class="bi bi-cart-plus"></i>
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Latest Arrivals Section -->
+  <section style="margin-bottom: 3.5rem;">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Latest Arrivals</h2>
+        <p class="section-subtitle">Fresh additions to our catalog this week</p>
+      </div>
+      <a href="{{ url_for('products', sort='newest') }}" class="section-link">Browse New <i class="bi bi-arrow-right"></i></a>
+    </div>
+
+    <div class="product-grid">
+      {% for product in latest_products %}
+        <div class="product-card">
+          <div class="product-thumb">
+            <img src="{{ product.image_url }}" alt="{{ product.name }}" loading="lazy"
+                 onerror="this.src='https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop&q=80';">
+            {% if product.stock < 10 and product.stock > 0 %}
+              <span class="badge-tag badge-low-stock">Only {{ product.stock }} left</span>
+            {% endif %}
+          </div>
+
+          <div class="product-body">
+            <div class="product-category">{{ product.category_name }}</div>
+            <a href="{{ url_for('product_detail', product_id=product.id) }}" class="product-title">
+              {{ product.name }}
+            </a>
+            <p class="product-desc">{{ product.description }}</p>
+
+            <div class="product-footer">
+              <div class="product-price">₹{{ "%.2f"|format(product.price) }}</div>
+
+              <form action="{{ url_for('add_to_cart', product_id=product.id) }}" method="POST" class="ajax-add-cart">
+                <input type="hidden" name="quantity" value="1">
+                <button type="submit" class="btn-add-cart" title="Add to Cart">
+                  <i class="bi bi-cart-plus"></i>
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}

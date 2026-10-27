@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.name }} | ShopEase{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Breadcrumb -->
+  <div style="font-size: 0.85rem; color: var(--gray-500); margin-bottom: 1.5rem;">
+    <a href="{{ url_for('index') }}" style="color: var(--gray-500);">Home</a> / 
+    <a href="{{ url_for('products') }}" style="color: var(--gray-500);">Products</a> / 
+    <a href="{{ url_for('products', category=product.category_id) }}" style="color: var(--gray-500);">{{ product.category_name }}</a> / 
+    <span style="color: var(--gray-800); font-weight: 600;">{{ product.name }}</span>
+  </div>
+
+  <!-- Product Detail Card -->
+  <div class="product-detail-card">
+    <!-- Image Gallery -->
+    <div class="product-detail-media">
+      <img src="{{ product.image_url }}" alt="{{ product.name }}" id="main-product-img"
+           onerror="this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=80';">
+    </div>
+
+    <!-- Product Info and Actions -->
+    <div class="detail-info">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+        <span class="product-category" style="font-size: 0.82rem; color: var(--primary); font-weight: 700;">
+          {{ product.category_name }}
+        </span>
+        {% if product.featured %}
+          <span class="badge-tag badge-featured" style="position: static;">Featured</span>
+        {% endif %}
+      </div>
+
+      <h1 class="detail-title">{{ product.name }}</h1>
+
+      <!-- Ratings Review Placeholder -->
+      <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; color: var(--accent); font-size: 0.9rem;">
+        <div>
+          <i class="bi bi-star-fill"></i>
+          <i class="bi bi-star-fill"></i>
+          <i class="bi bi-star-fill"></i>
+          <i class="bi bi-star-fill"></i>
+          <i class="bi bi-star-half"></i>
+        </div>
+        <span style="color: var(--gray-600); font-size: 0.85rem; font-weight: 600;">4.5 &bull; 48 Customer Reviews</span>
+      </div>
+
+      <div class="detail-price-box">
+        <div class="detail-price">₹{{ "%.2f"|format(product.price) }}</div>
+
+        {% if product.stock > 10 %}
+          <span class="stock-indicator in-stock"><i class="bi bi-check-circle-fill"></i> In Stock ({{ product.stock }} units)</span>
+        {% elif product.stock > 0 %}
+          <span class="stock-indicator low-stock"><i class="bi bi-exclamation-triangle-fill"></i> Low Stock (Only {{ product.stock }} left)</span>
+        {% else %}
+          <span class="stock-indicator out-of-stock"><i class="bi bi-x-circle-fill"></i> Out of Stock</span>
+        {% endif %}
+      </div>
+
+      <p class="detail-description">{{ product.description }}</p>
+
+      {% if product.stock > 0 %}
+        <!-- Add to Cart Form -->
+        <form action="{{ url_for('add_to_cart', product_id=product.id) }}" method="POST" id="product-order-form">
+          <div style="margin-bottom: 1rem;">
+            <label class="form-label">Select Quantity:</label>
+            <div class="qty-control">
+              <button type="button" class="qty-btn qty-minus">-</button>
+              <input type="number" name="quantity" class="qty-input" value="1" min="1" max="{{ product.stock }}" id="product-qty-input">
+              <button type="button" class="qty-btn qty-plus">+</button>
+              <span style="font-size: 0.82rem; color: var(--gray-500); margin-left: 0.5rem;">Max {{ product.stock }}</span>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <button type="submit" class="btn btn-primary btn-lg" style="flex: 1;" id="detail-add-cart-btn">
+              <i class="bi bi-cart3"></i> Add to Cart
+            </button>
+            <a href="{{ url_for('cart') }}" class="btn btn-secondary btn-lg">
+              <i class="bi bi-bag-check"></i> View Cart
+            </a>
+          </div>
+        </form>
+      {% else %}
+        <div class="alert alert-danger" style="margin-top: 1rem;">
+          <i class="bi bi-info-circle"></i> This item is currently unavailable. Please check back later or explore similar products below.
+        </div>
+      {% endif %}
+
+      <!-- Trust Badges -->
+      <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--gray-200); display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.85rem; color: var(--gray-700);">
+          <i class="bi bi-shield-check text-success" style="font-size: 1.3rem;"></i>
+          <span>100% Quality Inspected</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.85rem; color: var(--gray-700);">
+          <i class="bi bi-truck text-primary" style="font-size: 1.3rem;"></i>
+          <span>Dispatched in 24 Hours</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.85rem; color: var(--gray-700);">
+          <i class="bi bi-cash text-success" style="font-size: 1.3rem;"></i>
+          <span>Cash on Delivery Available</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.85rem; color: var(--gray-700);">
+          <i class="bi bi-arrow-repeat text-warning" style="font-size: 1.3rem;"></i>
+          <span>7-Day Return Policy</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Related Products Section -->
+  {% if related_products %}
+    <section style="margin-top: 3.5rem;">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Similar Products in {{ product.category_name }}</h2>
+          <p class="section-subtitle">Customers also looked at these items</p>
+        </div>
+      </div>
+
+      <div class="product-grid">
+        {% for rel in related_products %}
+          <div class="product-card">
+            <div class="product-thumb">
+              <img src="{{ rel.image_url }}" alt="{{ rel.name }}" loading="lazy"
+                   onerror="this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=80';">
+            </div>
+            <div class="product-body">
+              <div class="product-category">{{ rel.category_name }}</div>
+              <a href="{{ url_for('product_detail', product_id=rel.id) }}" class="product-title">{{ rel.name }}</a>
+              <div class="product-footer">
+                <div class="product-price">₹{{ "%.2f"|format(rel.price) }}</div>
+                <form action="{{ url_for('add_to_cart', product_id=rel.id) }}" method="POST" class="ajax-add-cart">
+                  <input type="hidden" name="quantity" value="1">
+                  <button type="submit" class="btn-add-cart" title="Add to Cart">
+                    <i class="bi bi-cart-plus"></i>
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+  {% endif %}
+</div>
+{% endblock %}

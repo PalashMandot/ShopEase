@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block title %}Order #{{ order.order_number }} | ShopEase{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 900px;">
+  <!-- Header Bar -->
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <div style="font-size: 0.85rem; color: var(--gray-500); margin-bottom: 0.25rem;">
+        <a href="{{ url_for('orders') }}" style="color: var(--gray-500);">My Orders</a> / <span>{{ order.order_number }}</span>
+      </div>
+      <h1 style="font-size: 1.85rem; font-weight: 800; color: var(--gray-900);">
+        Order <span style="color: var(--primary);">#{{ order.order_number }}</span>
+      </h1>
+      <div style="color: var(--gray-500); font-size: 0.9rem;">
+        Placed on {{ order.created_at }}
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 1rem;">
+      <span class="status-badge status-{{ order.status|lower }}" style="font-size: 0.9rem; padding: 0.4rem 1rem;">
+        <i class="bi bi-circle-fill" style="font-size: 0.5rem;"></i> {{ order.status }}
+      </span>
+      <button class="btn btn-secondary btn-sm" onclick="window.print()">
+        <i class="bi bi-printer"></i> Print Invoice
+      </button>
+    </div>
+  </div>
+
+  <!-- Status Progress Bar -->
+  <div style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.75rem; margin-bottom: 2rem; box-shadow: var(--shadow-sm);">
+    <h3 style="font-size: 0.95rem; font-weight: 700; text-transform: uppercase; color: var(--gray-500); margin-bottom: 1.25rem;">
+      Fulfillment Progress
+    </h3>
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; text-align: center; position: relative;">
+      {% set statuses = ['Pending', 'Processing', 'Shipped', 'Delivered'] %}
+      {% for s in statuses %}
+        {% set is_active = (order.status == s or (order.status == 'Delivered') or (order.status == 'Shipped' and s in ['Pending', 'Processing', 'Shipped']) or (order.status == 'Processing' and s in ['Pending', 'Processing'])) and order.status != 'Cancelled' %}
+        <div style="padding: 0.75rem 0.5rem; border-radius: var(--radius-md); background: {{ 'var(--primary-light)' if is_active else 'var(--gray-100)' }}; color: {{ 'var(--primary)' if is_active else 'var(--gray-500)' }}; font-weight: {{ '700' if is_active else '500' }}; font-size: 0.88rem;">
+          <i class="bi {{ 'bi-check-circle-fill' if is_active else 'bi-circle' }}"></i><br>
+          {{ s }}
+        </div>
+      {% endfor %}
+    </div>
+    {% if order.status == 'Cancelled' %}
+      <div class="alert alert-danger" style="margin-top: 1rem; margin-bottom: 0;">
+        <i class="bi bi-x-circle"></i> This order was cancelled.
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Line Items Card -->
+  <div class="table-card" style="margin-bottom: 2rem;">
+    <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--gray-200); background: var(--gray-50);">
+      <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--gray-900);">Items in this Order</h3>
+    </div>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Product Description</th>
+            <th>Purchase Price</th>
+            <th>Quantity</th>
+            <th style="text-align: right;">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in items %}
+            <tr>
+              <td>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                  <img src="{{ item.product_image }}" alt="{{ item.product_name }}"
+                       style="width: 50px; height: 50px; border-radius: var(--radius-md); object-fit: cover; background: var(--gray-100);"
+                       onerror="this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=80';">
+                  <div style="font-weight: 700; color: var(--gray-900); font-size: 0.95rem;">
+                    {{ item.product_name }}
+                  </div>
+                </div>
+              </td>
+              <td style="color: var(--gray-700); font-weight: 600;">
+                ₹{{ "%.2f"|format(item.price) }}
+              </td>
+              <td style="font-weight: 700;">
+                {{ item.quantity }}
+              </td>
+              <td style="text-align: right; font-weight: 800; color: var(--gray-900);">
+                ₹{{ "%.2f"|format(item.subtotal) }}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Shipping & Cost Breakdown Cards -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+    <div style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.75rem; box-shadow: var(--shadow-sm);">
+      <h3 style="font-size: 1rem; font-weight: 800; color: var(--gray-900); margin-bottom: 1rem;">
+        <i class="bi bi-geo-alt text-primary"></i> Delivery Details
+      </h3>
+      <p style="font-size: 0.92rem; color: var(--gray-700); line-height: 1.6;">
+        <strong>Recipient:</strong> {{ order.customer_name }}<br>
+        <strong>Address:</strong> {{ order.shipping_address }}<br>
+        <strong>City & PIN:</strong> {{ order.city }} - {{ order.postal_code }}<br>
+        <strong>Phone:</strong> {{ order.customer_phone }}<br>
+        <strong>Email:</strong> {{ order.customer_email }}
+        {% if order.order_notes %}
+          <br><strong>Instructions:</strong> {{ order.order_notes }}
+        {% endif %}
+      </p>
+    </div>
+
+    <div style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.75rem; box-shadow: var(--shadow-sm);">
+      <h3 style="font-size: 1rem; font-weight: 800; color: var(--gray-900); margin-bottom: 1rem;">
+        <i class="bi bi-receipt text-primary"></i> Payment Summary
+      </h3>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--gray-600);">
+        <span>Subtotal</span>
+        <span>₹{{ "%.2f"|format(order.subtotal) }}</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--gray-600);">
+        <span>Shipping</span>
+        <span>{{ 'FREE' if order.shipping_fee == 0 else ('₹%.2f'|format(order.shipping_fee)) }}</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem; font-size: 0.9rem; color: var(--gray-600);">
+        <span>Payment Method</span>
+        <span style="font-weight: 700; color: var(--gray-800);">{{ order.payment_method }}</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; padding-top: 0.75rem; border-top: 1px dashed var(--gray-300); font-size: 1.25rem; font-weight: 800; color: var(--gray-900);">
+        <span>Total Amount</span>
+        <span style="color: var(--primary);">₹{{ "%.2f"|format(order.total_amount) }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-bottom: 3rem;">
+    <a href="{{ url_for('orders') }}" class="btn btn-secondary">
+      <i class="bi bi-arrow-left"></i> Back to Orders
+    </a>
+  </div>
+</div>
+{% endblock %}
